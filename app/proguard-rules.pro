@@ -2,7 +2,7 @@
 -flattenpackagehierarchy com.github.catvod.spider.merge
 
 # dontwarn
--dontwarn org.slf4j.impl.**
+-dontwarn org.slf4j.**
 -dontwarn org.xmlpull.v1.**
 -dontwarn android.content.res.**
 
@@ -27,6 +27,12 @@
 
 # Sardine
 -keep class com.thegrizzlylabs.sardineandroid.** { *; }
+
+# SMBJ
+-keep class com.hierynomus.** { *; }
+-keep class net.engio.mbassy.** { *; }
+-dontwarn org.ietf.jgss.**
+-dontwarn javax.**
 
 # Logger
 -keep class com.orhanobut.logger.** { *; }

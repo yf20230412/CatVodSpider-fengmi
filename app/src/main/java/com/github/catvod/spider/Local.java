@@ -42,30 +42,29 @@ public class Local extends Spider {
         List<Class> classes = new ArrayList<>();
         classes.add(new Class(Environment.getExternalStorageDirectory().getAbsolutePath(), "本地文件", "1"));
         File[] files = new File("/storage").listFiles();
-        if (files == null) return Result.string(classes, new ArrayList<>());
+        if (files == null) return Result.string(classes);
         List<String> exclude = Arrays.asList("emulated", "sdcard", "self");
         for (File file : files) {
             if (exclude.contains(file.getName())) continue;
             classes.add(new Class(file.getAbsolutePath(), file.getName(), "1"));
         }
-        return Result.string(classes, new ArrayList<>());
+        return Result.string(classes);
     }
 
     @Override
     public String categoryContent(String tid, String pg, boolean filter, HashMap<String, String> extend) throws Exception {
         List<Vod> items = new ArrayList<>();
-        List<Vod> media = new ArrayList<>();
-        List<Vod> folders = new ArrayList<>();
         File[] files = new File(tid).listFiles();
         if (files == null) return Result.string(items);
-        Arrays.sort(files, (a, b) -> a.getName().compareTo(b.getName()));
+        Arrays.sort(files, (o1, o2) -> {
+            if (o1.isDirectory() && o2.isFile()) return -1;
+            if (o1.isFile() && o2.isDirectory()) return 1;
+            return o1.getName().toLowerCase().compareTo(o2.getName().toLowerCase());
+        });
         for (File file : files) {
             if (file.getName().startsWith(".")) continue;
-            if (file.isDirectory()) folders.add(create(file));
-            else if (Util.isMedia(file.getName())) media.add(create(file));
+            if (file.isDirectory() || Util.isMedia(file.getName())) items.add(create(file));
         }
-        items.addAll(folders);
-        items.addAll(media);
         return Result.get().vod(items).page().string();
     }
 
@@ -97,7 +96,7 @@ public class Local extends Spider {
         vod.setVodName(name);
         vod.setVodPic(Image.VIDEO);
         vod.setVodPlayFrom("播放");
-        vod.setVodPlayUrl(name + "$" + url);
+        vod.setVodPlayUrl(1 + "$" + url);
         return vod;
     }
 
@@ -105,7 +104,7 @@ public class Local extends Spider {
         Vod vod = new Vod();
         vod.setVodId(file.getAbsolutePath());
         vod.setVodName(file.getName());
-        vod.setVodPic(file.isFile() ? Proxy.getUrl() + "?do=local&path=" + Base64.encodeToString(file.getAbsolutePath().getBytes(), Base64.DEFAULT | Base64.URL_SAFE) : Image.FOLDER);
+        vod.setVodPic(file.isFile() ? "proxy://do=local&path=" + Base64.encodeToString(file.getAbsolutePath().getBytes(), Base64.DEFAULT | Base64.URL_SAFE) : Image.FOLDER);
         vod.setVodRemarks(format.format(file.lastModified()));
         vod.setVodTag(file.isDirectory() ? "folder" : "file");
         return vod;
